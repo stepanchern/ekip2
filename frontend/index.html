@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Shopping Assistant</title>
+    <!-- Leaflet CSS for the Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>🛒 Smart Shopping Assistant</h1>
+        <p>Save money and plan your route.</p>
+    </header>
+
+    <main class="container">
+        <!-- Left Panel: Shopping List & Prices -->
+        <section class="panel list-panel">
+            <h2>1. Create Your List</h2>
+            <div class="input-group">
+                <input type="text" id="product-search" list="product-list" placeholder="Search product...">
+                <datalist id="product-list"></datalist>
+                <input type="number" id="product-quantity" value="1" min="1" placeholder="Qty" style="width: 60px;">
+                <button id="add-btn">Add</button>
+            </div>
+
+            <ul id="shopping-list">
+                <!-- List items go here -->
+            </ul>
+            <button id="clear-btn" style="width: 100%; background-color: #e74c3c; margin-top: 10px; display: none;">Clear List</button>
+
+            <div id="price-comparison" class="hidden">
+                <h2>2. Price Comparison</h2>
+                <div id="comparison-results"></div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Map & Route -->
+        <section class="panel map-panel">
+            <h2>3. Store Map & Route</h2>
+            <div id="map"></div>
+            <div id="route-info"></div>
+        </section>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
