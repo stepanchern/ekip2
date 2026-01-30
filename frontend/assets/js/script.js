@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadDatabase() {
     products = [
-        { id: 1, name: "Milk (1 L)" },
-        { id: 2, name: "Bread (Loaf)" },
-        { id: 3, name: "Eggs (10 pack)" },
-        { id: 4, name: "Apples (1 kg)" },
-        { id: 5, name: "Chicken Breast (1 kg)" },
-        { id: 6, name: "Rice (1 kg)" }
+        { id: 1, name: "Мляко (1 л)" },
+        { id: 2, name: "Хляб (самун)" },
+        { id: 3, name: "Яйца (10 бр.)" },
+        { id: 4, name: "Ябълки (1 кг)" },
+        { id: 5, name: "Пилешки гърди (1 кг)" },
+        { id: 6, name: "Ориз (1 кг)" }
     ];
 
     const chainPrices = {
@@ -69,8 +69,8 @@ async function loadDatabase() {
         });
         const data = await response.json();
         stores = data.elements.map(el => {
-            const name = el.tags.name || "Unknown Supermarket";
-            let chain = "Unknown";
+            const name = el.tags.name || "Неизвестен супермаркет";
+            let chain = "Неизвестно";
             
             // Match against supported chains
             for (const c of supportedChains) {
@@ -81,7 +81,7 @@ async function loadDatabase() {
             }
 
             // Fallback: Assign random chain if unknown to ensure prices exist for demo
-            if (chain === "Unknown") {
+            if (chain === "Неизвестно") {
                 chain = supportedChains[Math.floor(Math.random() * supportedChains.length)];
             }
 
@@ -95,10 +95,52 @@ async function loadDatabase() {
     if (stores.length === 0) {
         stores.push({
             id: 999,
-            name: "Test Store (Lidl)",
+            name: "Тестов магазин (Lidl)",
             chain: "Lidl",
-            lat: userLocation.lat + 0.001,
-            lng: userLocation.lng + 0.001
+            lat: userLocation.lat + 0.1,
+            lng: userLocation.lng + 0.1
+        });
+        stores.push({
+            id: 1000,
+            name: "Тестов магазин (Kaufland)",
+            chain: "Kaufland",
+            lat: userLocation.lat - 0.05,
+            lng: userLocation.lng + 0.05
+        });
+        stores.push({
+            id: 1001,
+            name: "Тестов магазин (Billa)",
+            chain: "Billa",
+            lat: userLocation.lat + 0.03,
+            lng: userLocation.lng - 0.02
+        });
+        stores.push({
+            id: 1002,
+            name: "Тестов магазин (Bulmag)",
+            chain: "Bulmag",
+            lat: userLocation.lat - 0.03,
+            lng: userLocation.lng - 0.03
+        });
+        stores.push({
+            id: 1003,
+            name: "Тестов магазин (MyMarket)",
+            chain: "MyMarket",
+            lat: userLocation.lat + 0.02,
+            lng: userLocation.lng + 0.04
+        });
+        stores.push({
+            id: 1004,
+            name: "Тестов магазин (Nablizo)",
+            chain: "Nablizo",
+            lat: userLocation.lat - 0.01,
+            lng: userLocation.lng - 0.04
+        });
+        stores.push({
+            id: 1005,
+            name: "Тестов магазин (Lidl Center)",
+            chain: "Lidl",
+            lat: userLocation.lat + 0.005,
+            lng: userLocation.lng - 0.005
         });
     }
 
@@ -133,7 +175,7 @@ function addToCart() {
     }
     
     if (!product) {
-        alert("Please select a valid product from the list.");
+        alert("Моля, изберете валиден продукт от списъка.");
         return;
     }
     
@@ -168,8 +210,11 @@ function renderList() {
     shoppingList.forEach(item => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <span>${item.name} (x${item.quantity})</span>
-            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+            <div class="item-details">
+                <span class="item-name">${item.name}</span>
+                <span class="item-qty">Количество: ${item.quantity}</span>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">Премахни</button>
         `;
         listEl.appendChild(li);
     });
@@ -189,13 +234,13 @@ function renderList() {
 }
 
 // --- 4. Price Comparison & Route Logic ---
-function calculateAndCompare() {
+async function calculateAndCompare() {
     if (shoppingList.length === 0) return;
 
     if (storeMarkersLayer) storeMarkersLayer.clearLayers();
 
     const resultsContainer = document.getElementById('comparison-results');
-    resultsContainer.innerHTML = '';
+    resultsContainer.innerHTML = '<p>Изчисляване на маршрути...</p>';
 
     let storeTotals = [];
 
@@ -225,16 +270,20 @@ function calculateAndCompare() {
     storeTotals.sort((a, b) => a.total - b.total);
     
     if (storeTotals.length === 0) {
-        resultsContainer.innerHTML = '<p>No supported stores found nearby.</p>';
+        resultsContainer.innerHTML = '<p>Не са намерени поддържани магазини наблизо.</p>';
         return;
     }
 
     const minPrice = storeTotals[0].total;
     const maxPrice = storeTotals[storeTotals.length - 1].total;
 
+    resultsContainer.innerHTML = '';
+
     // Render Cards
-    storeTotals.forEach(data => {
+    for (const data of storeTotals) {
         const div = document.createElement('div');
+        const routeData = await getRouteData(userLocation, data.store);
+        const distanceText = routeData ? (routeData.distance / 1000).toFixed(1) + ' km' : 'N/A';
         let colorClass = 'avg';
         
         if (data.total === minPrice) colorClass = 'cheap';
@@ -246,8 +295,11 @@ function calculateAndCompare() {
         div.className = `store-card ${colorClass}`;
         div.innerHTML = `
             <h3>${data.store.name}</h3>
-            <div class="price-tag">${totalBGN.toFixed(2)} BGN / €${totalEUR.toFixed(2)}</div>
-            <small>${data.missing === 0 ? 'All items available' : data.missing + ' items missing'}</small>
+            <div class="price-tag">€${totalEUR.toFixed(2)} / ${totalBGN.toFixed(2)} лв.</div>
+            <small>
+                ${data.missing === 0 ? 'Всички продукти са налични' : data.missing + ' липсващи продукта'}
+                <br>🚗 Разстояние: ${distanceText}
+            </small>
         `;
         
         // Add click listener to focus map
@@ -257,10 +309,10 @@ function calculateAndCompare() {
 
         resultsContainer.appendChild(div);
         
-        L.marker([data.store.lat, data.store.lng])
+        L.marker([data.store.lat, data.store.lng], { icon: getMarkerIcon(colorClass) })
             .addTo(storeMarkersLayer)
-            .bindPopup(`<b>${data.store.name}</b>`);
-    });
+            .bindPopup(`<b>${data.store.name}</b><br>Цена: ${totalBGN.toFixed(2)} лв.`);
+    }
 
     // Auto-plan route to the cheapest store
     planRoute(storeTotals[0].store);
@@ -278,7 +330,7 @@ function initMap() {
     // User Marker
     userMarker = L.marker([userLocation.lat, userLocation.lng])
         .addTo(map)
-        .bindPopup("<b>You are here</b>")
+        .bindPopup("<b>Вие сте тук</b>")
         .openPopup();
 
     routeLayer = L.layerGroup().addTo(map);
@@ -307,16 +359,16 @@ async function planRoute(targetStore) {
     // This logic checks if buying specific items at different stores saves significant money
     const optimization = checkSplitRouteOptimization();
     
-    let routeMsg = `<strong>Recommended Route:</strong> Go to ${targetStore.name} for the lowest total cart price.`;
+    let routeMsg = `<strong>Препоръчителен маршрут:</strong> Отидете до ${targetStore.name} за най-ниска обща цена.`;
     
     if (optimization.shouldSplit) {
         const savingsBGN = optimization.savings;
         const savingsEUR = savingsBGN / 1.95583;
 
-        routeMsg += `<br><br><strong>💡 Smart Tip:</strong> You could save 
-        <span style="color:green">${savingsBGN.toFixed(2)} BGN (€${savingsEUR.toFixed(2)})</span> 
-        if you buy ${optimization.storeAItems.join(', ')} at ${optimization.storeA.name} 
-        and the rest at ${optimization.storeB.name}.`;
+        routeMsg += `<br><br><strong>💡 Умен съвет:</strong> Можете да спестите 
+        <span style="color:green">€${savingsEUR.toFixed(2)} (${savingsBGN.toFixed(2)} лв.)</span> 
+        ако купите ${optimization.storeAItems.join(', ')} от ${optimization.storeA.name} 
+        и останалото от ${optimization.storeB.name}.`;
         
         // Draw second line if split
         await drawRoute(userLocation, optimization.storeB, 'green', '5, 10');
@@ -334,6 +386,20 @@ async function drawRoute(start, end, color, dashArray = null) {
             const options = { color: color, weight: 4, opacity: 0.7 };
             if (dashArray) options.dashArray = dashArray;
             return L.geoJSON(data.routes[0].geometry, { style: options }).addTo(routeLayer);
+        }
+    } catch (e) {
+        console.error("Routing error:", e);
+    }
+    return null;
+}
+
+async function getRouteData(start, end) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=false`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.routes && data.routes.length > 0) {
+            return data.routes[0];
         }
     } catch (e) {
         console.error("Routing error:", e);
@@ -376,8 +442,30 @@ function checkSplitRouteOptimization() {
             savings: potentialSavings,
             storeA: stores[1], // Mock: BudgetBuy
             storeB: stores[0], // Mock: FreshMart
-            storeAItems: ["Milk", "Eggs"] // Mock items
+            storeAItems: ["Мляко", "Яйца"] // Mock items
         };
     }
     return { shouldSplit: false };
+}
+
+function getMarkerIcon(type) {
+    const colors = {
+        'cheap': '#10b981',
+        'avg': '#f59e0b',
+        'exp': '#ef4444'
+    };
+    const color = colors[type] || '#3b82f6';
+    
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="${color}">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>`;
+
+    return L.divIcon({
+        className: 'custom-pin',
+        html: svg,
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+    });
 }

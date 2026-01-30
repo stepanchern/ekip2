@@ -10,19 +10,19 @@
 </head>
 <body>
     <header>
-        <h1>🛒 Smart Shopping Assistant</h1>
-        <p>Save money and plan your route.</p>
+        <h1>🛒 Умен асистент за пазаруване</h1>
+        <p>Спестете пари и планирайте маршрута си.</p>
     </header>
 
     <main class="container">
         <!-- Left Panel: Shopping List & Prices -->
         <section class="panel list-panel">
-            <h2>1. Create Your List</h2>
+            <h2>1. Създайте своя списък</h2>
             <div class="input-group">
-                <input type="text" id="product-search" list="product-list" placeholder="Search product...">
+                <input type="text" id="product-search" list="product-list" placeholder="Търси продукт...">
                 <datalist id="product-list"></datalist>
                 <input type="number" id="product-quantity" value="1" min="1" placeholder="Qty" style="width: 60px;">
-                <button id="add-btn">Add</button>
+                <button id="add-btn">Добави</button>
             </div>
 
             <ul id="shopping-list">
@@ -31,14 +31,14 @@
             <button id="clear-btn" style="width: 100%; background-color: #e74c3c; margin-top: 10px; display: none;">Clear List</button>
 
             <div id="price-comparison" class="hidden">
-                <h2>2. Price Comparison</h2>
+                <h2>2. Сравнение на цените</h2>
                 <div id="comparison-results"></div>
             </div>
         </section>
 
         <!-- Right Panel: Map & Route -->
         <section class="panel map-panel">
-            <h2>3. Store Map & Route</h2>
+            <h2>3. Карта на магазина и маршрут</h2>
             <div id="map"></div>
             <div id="route-info"></div>
         </section>
